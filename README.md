@@ -1,4 +1,3 @@
-````markdown
 # BendersX Engine – Production-Ready Solver
 
 [![CI](https://github.com/zeynelacikgoez/bendersx-engine/workflows/CI/badge.svg)](https://github.com/zeynelacikgoez/bendersx-engine/actions)  
@@ -10,7 +9,6 @@
 
 A lightweight, high-performance implementation perfect for research, teaching, and medium-scale production workloads.
 
----
 
 ## 🚀 Key Features
 
@@ -21,7 +19,6 @@ A lightweight, high-performance implementation perfect for research, teaching, a
 - **Clear Roadmap** for further 2–4× speedup  
 - **Well-Documented API** and examples
 
----
 
 ## 🏁 Quick Start
 
