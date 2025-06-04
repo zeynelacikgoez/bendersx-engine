@@ -25,11 +25,25 @@ def _ensure_b_rows_nonzero(B: SimpleMatrix) -> None:
 
 
 def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: dict) -> None:
-    diag_vals = [0.2 + 0.7 * random.random() for _ in range(A.shape[0])]
+    """Apply simple structured tweaks for planwirtschaft matrices."""
+    diag_base = params.get("diag_base", 0.2)
+    diag_var = params.get("diag_variation", 0.7)
+    diag_vals = [diag_base + diag_var * random.random() for _ in range(A.shape[0])]
     A.setdiag(diag_vals)
+
     max_col_sum = params.get("max_col_sum_A", 0.95)
     _normalize_column_sums(A, max_col_sum)
+
     _ensure_b_rows_nonzero(B)
+
+    priority_factor = params.get("priority_sector_demand_factor", 1.0)
+    priority_sectors = params.get("priority_sectors", [])
+    for idx in priority_sectors:
+        if 0 <= idx < B.shape[0]:
+            row = B.data[idx]
+            if not any(val != 0 for val in row) and B.shape[1] > 0:
+                row[random.randrange(B.shape[1])] = random.random() * priority_factor
+            B.data[idx] = [val * priority_factor for val in row]
 
 
 def _random_matrix(rows: int, cols: int, density: float) -> SimpleMatrix:
@@ -53,7 +67,7 @@ def generate_sparse_matrices(
         config = BendersConfig()
 
     A = _random_matrix(n, n, sparsity)
-    if problem_type in {"leontief", "planwirtschaft"}:
+    if problem_type == "leontief":
         diag_vals = [0.2 + 0.7 * random.random() for _ in range(n)]
         A.setdiag(diag_vals)
         _normalize_column_sums(A, 0.95)

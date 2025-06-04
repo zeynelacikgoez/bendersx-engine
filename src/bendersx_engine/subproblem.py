@@ -50,7 +50,14 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
         for i in range(len(inp.r_i_assigned))
     )
     x_block = [demand / n_block if n_block > 0 else 0.0 for _ in range(n_block)]
+
     obj = sum(x_block)
+    if inp.config.matrix_gen_params.get("planwirtschaft_objective"):
+        penalty_factor = inp.config.matrix_gen_params.get("underproduction_penalty", 1.0)
+        planned = sum(inp.r_i_assigned)
+        produced = sum(x_block)
+        deviation = max(0.0, planned - produced)
+        obj = produced - penalty_factor * deviation
     pi_i = [0.5 for _ in inp.r_i_assigned]
     mu_iT_d_value = obj - sum(pi_i[j] * inp.r_i_assigned[j] for j in range(len(pi_i)))
     cut = make_opt_cut(inp.block_id, pi_i, mu_iT_d_value)
