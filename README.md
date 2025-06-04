@@ -11,6 +11,7 @@ This repository contains a small Python implementation demonstrating the core st
 * **Examples and Tests** – a CLI entry point (`python -m bendersx_engine.cli`) and a small pytest suite.
 * **Early Stopping** – iterations halt once the solution change drops below a configurable tolerance.
 * **Adaptive Partitioning** – block sizes adjust according to the dual gap to better handle large planning models.
+* **Planned Economy Support** – generate matrices for `planwirtschaft` style input-output systems using the existing helpers.
 
 The implementation is not intended for production use. It omits many optimizations and contains simplified placeholders.
 
