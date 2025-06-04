@@ -7,4 +7,6 @@ The solver stops early when successive iterates change less than the
 
 The `partitioning` module splits blocks adaptively based on the dual gap. This
 helps keep workloads balanced for large-scale planning models such as
-Leontief-style input-output systems.
+Leontief-style input-output systems. The same routine can be used for
+"planwirtschaft" problems by specifying `problem_type="planwirtschaft"` when
+generating matrices.

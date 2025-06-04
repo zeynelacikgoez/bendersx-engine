@@ -29,7 +29,7 @@ def generate_sparse_matrices(
         config = BendersConfig()
 
     A = _random_matrix(n, n, sparsity)
-    if problem_type == "leontief":
+    if problem_type in {"leontief", "planwirtschaft"}:
         diag_vals = [0.1 + 0.8 * random.random() for _ in range(n)]
         A.setdiag(diag_vals)
 
