@@ -1,4 +1,5 @@
 from bendersx_engine.matrix_generation import generate_sparse_matrices
+from bendersx_engine import BendersConfig
 
 
 def test_matrix_shapes():
@@ -21,3 +22,14 @@ def test_planwirtschaft_problem_type():
     # Each row of B should have at least one non-zero entry
     for row in B.data:
         assert any(val != 0 for val in row)
+
+
+def test_planwirtschaft_row_targets_and_limits():
+    cfg = BendersConfig(verbose=False, matrix_gen_params={
+        "B_row_targets": {0: {1: 0.5}},
+        "A_column_limits": {0: 0.1},
+    })
+    A, B = generate_sparse_matrices(3, 2, problem_type="planwirtschaft", config=cfg)
+    assert B.data[0][1] == 0.5
+    col_sum = sum(A.data[i][0] for i in range(3))
+    assert col_sum <= 0.1 + 1e-9
