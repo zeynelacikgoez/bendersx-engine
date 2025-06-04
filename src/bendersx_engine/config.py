@@ -30,6 +30,7 @@ class BendersConfig:
     matrix_gen_params: Optional[dict] = None  # e.g. planwirtschaft parameters
     enable_memory_tracking: bool = True
     set_omp_threads: bool = True
+    priority_sector_allocation_factor: float = 1.0
 
     def __post_init__(self) -> None:
         if self.n_processes is None:
@@ -51,3 +52,6 @@ class BendersConfig:
 
         if self.matrix_gen_params is None:
             self.matrix_gen_params = {}
+
+        if self.matrix_gen_params.get("priority_sectors") and self.priority_sector_allocation_factor < 1.0:
+            raise ValueError("priority_sector_allocation_factor must be >= 1.0")

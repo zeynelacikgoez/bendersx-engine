@@ -80,6 +80,21 @@ def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: di
                 row[random.randrange(B.shape[1])] = random.random() * priority_factor
             B.data[idx] = [val * priority_factor for val in row]
 
+    tech_factor = params.get("priority_sector_tech_factor")
+    if tech_factor is not None:
+        for idx in priority_sectors:
+            if 0 <= idx < A.shape[0]:
+                A.data[idx] = [val * tech_factor for val in A.data[idx]]
+
+    capacity_limits = params.get("sector_capacity_limits")
+    if isinstance(capacity_limits, dict):
+        for idx, limit in capacity_limits.items():
+            if 0 <= idx < B.shape[0] and limit > 0:
+                row_sum = sum(B.data[idx])
+                if row_sum > limit:
+                    factor = limit / row_sum
+                    B.data[idx] = [val * factor for val in B.data[idx]]
+
 
 def _random_matrix(rows: int, cols: int, density: float) -> SimpleMatrix:
     data = []

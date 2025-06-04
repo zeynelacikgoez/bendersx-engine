@@ -33,3 +33,17 @@ def test_planwirtschaft_row_targets_and_limits():
     assert B.data[0][1] == 0.5
     col_sum = sum(A.data[i][0] for i in range(3))
     assert col_sum <= 0.1 + 1e-9
+
+
+def test_capacity_limits_and_tech_factor():
+    cfg = BendersConfig(verbose=False, matrix_gen_params={
+        "priority_sectors": [1],
+        "priority_sector_tech_factor": 0.5,
+        "sector_capacity_limits": {1: 0.05},
+    })
+    A, B = generate_sparse_matrices(4, 3, problem_type="planwirtschaft", config=cfg)
+    row_sum = sum(B.data[1])
+    assert row_sum <= 0.05 + 1e-9
+    avg_row0 = sum(A.data[1]) / len(A.data[1])
+    avg_other = sum(A.data[0]) / len(A.data[0])
+    assert avg_row0 <= avg_other

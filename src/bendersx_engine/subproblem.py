@@ -55,11 +55,29 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
     if inp.config.matrix_gen_params.get("planwirtschaft_objective"):
         under_penalty = inp.config.matrix_gen_params.get("underproduction_penalty", 1.0)
         over_penalty = inp.config.matrix_gen_params.get("overproduction_penalty", 0.0)
-        planned = sum(inp.r_i_assigned)
-        produced = sum(x_block)
-        under_dev = max(0.0, planned - produced)
-        over_dev = max(0.0, produced - planned)
-        obj = produced - under_penalty * under_dev - over_penalty * over_dev
+        under_penalties = inp.config.matrix_gen_params.get("underproduction_penalties")
+        over_penalties = inp.config.matrix_gen_params.get("overproduction_penalties")
+
+        m0 = len(inp.r_i_assigned)
+        if under_penalties is None:
+            under_penalties = [under_penalty for _ in range(m0)]
+        if over_penalties is None:
+            over_penalties = [over_penalty for _ in range(m0)]
+
+        produced_vec = []
+        for i in range(m0):
+            prod = 0.0
+            for j in range(n_block):
+                prod += B.data[i][inp.start + j] * x_block[j]
+            produced_vec.append(prod)
+
+        obj = 0.0
+        for i in range(m0):
+            planned = inp.r_i_assigned[i]
+            produced = produced_vec[i]
+            under_dev = max(0.0, planned - produced)
+            over_dev = max(0.0, produced - planned)
+            obj += produced - under_penalties[i] * under_dev - over_penalties[i] * over_dev
     pi_i = [0.5 for _ in inp.r_i_assigned]
     mu_iT_d_value = obj - sum(pi_i[j] * inp.r_i_assigned[j] for j in range(len(pi_i)))
     cut = make_opt_cut(inp.block_id, pi_i, mu_iT_d_value)
