@@ -1,17 +1,19 @@
 """Environment and capability detection utilities."""
+
 from __future__ import annotations
 
 import os
 import shutil
 
 try:
-    import highspy
+    import highspy  # type: ignore
 except ImportError:  # pragma: no cover - highspy is optional
     highspy = None
 
 
 try:
-    import numba
+    import numba  # type: ignore
+
     NUMBA_AVAILABLE = True
 except ImportError:  # pragma: no cover - numba is optional
     NUMBA_AVAILABLE = False
@@ -25,7 +27,7 @@ def check_highs_version() -> bool:
 
     try:
         version = highspy.Highs().versionNumber()
-        major, minor = version.split('.')[:2]
+        major, minor = version.split(".")[:2]
         if int(minor) < 8:
             print(f"HiGHS {version} detected. Upgrade recommended")
             return False

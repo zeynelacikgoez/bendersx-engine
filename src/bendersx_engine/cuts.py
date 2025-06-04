@@ -1,21 +1,23 @@
-"""Cut management utilities."""
 from __future__ import annotations
 
-import numpy as np
-
+import math
 from .config import BendersConfig
 
 
+def _dot(a, b):
+    return sum(x * y for x, y in zip(a, b))
+
+
 def make_feas_cut(block_id: str, pi_feas_only, r_i_assigned):
-    alpha = pi_feas_only @ r_i_assigned
-    beta = pi_feas_only
+    alpha = _dot(pi_feas_only, r_i_assigned)
+    beta = list(pi_feas_only)
     return ("feas", block_id, beta, alpha)
 
 
 def make_opt_cut(block_id: str, pi_i, mu_iT_d_value):
-    if np.any(np.isnan(pi_i)) or np.isnan(mu_iT_d_value):
+    if any(math.isnan(x) for x in pi_i) or math.isnan(mu_iT_d_value):
         return None
-    return ("opt", block_id, pi_i, mu_iT_d_value)
+    return ("opt", block_id, list(pi_i), mu_iT_d_value)
 
 
 def pareto_select_cuts(cuts_list: list, max_k: int, config: BendersConfig):
