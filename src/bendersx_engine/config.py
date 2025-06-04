@@ -27,7 +27,7 @@ class BendersConfig:
     adaptive_big_m_factor: int = 50
     big_m_cap: float = 1e7
     convergence_tolerance: float = 1e-6
-    matrix_gen_params: Optional[dict] = None
+    matrix_gen_params: Optional[dict] = None  # e.g. planwirtschaft parameters
     enable_memory_tracking: bool = True
     set_omp_threads: bool = True
 
