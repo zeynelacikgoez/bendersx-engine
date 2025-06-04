@@ -63,7 +63,8 @@ def benders_decomposition(
                     x_prev[s:e] = x_block
                     break
         dual_gaps = {
-            bid: theta[idx] - obj for idx, (bid, _, _) in enumerate(blocks_metadata)
+            bid: theta[idx] - results[idx][1]
+            for idx, (bid, _, _) in enumerate(blocks_metadata)
         }
         blocks_metadata = repartition_blocks(blocks_metadata, dual_gaps, n)
 
