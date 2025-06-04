@@ -10,4 +10,5 @@ def test_algorithm_runs():
     A = sp.identity(n, format="csr")
     B = sp.csr_matrix(np.ones((m0, n)))
     total_r = np.ones(m0)
-    benders_decomposition(n, m0, total_r, A, B, cfg)
+    _, _, _, info = benders_decomposition(n, m0, total_r, A, B, cfg)
+    assert info["iterations"] <= cfg.max_iterations_per_phase
