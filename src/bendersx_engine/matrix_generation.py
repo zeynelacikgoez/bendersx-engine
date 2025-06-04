@@ -17,24 +17,59 @@ def _normalize_column_sums(matrix: SimpleMatrix, max_sum: float) -> None:
                 matrix.data[i][j] *= factor
 
 
-def _ensure_b_rows_nonzero(B: SimpleMatrix) -> None:
+def _ensure_b_rows_nonzero(B: SimpleMatrix, row_targets: dict | None = None) -> None:
+    """Ensure every row of ``B`` has at least one non-zero entry.
+
+    Parameters
+    ----------
+    B : SimpleMatrix
+        Demand matrix to modify in-place.
+    row_targets : dict | None, optional
+        Optional dictionary mapping row indices to ``{col: value}`` mappings.
+        Specified entries are written before the non-zero check is performed.
+    """
+    if row_targets is None:
+        row_targets = {}
+
     n = B.shape[1]
-    for row in B.data:
+    for idx, row in enumerate(B.data):
+        target = row_targets.get(idx)
+        if target:
+            for j, val in target.items():
+                if 0 <= j < n:
+                    row[j] = val
+
         if not any(val != 0 for val in row) and n > 0:
             row[random.randrange(n)] = random.random()
 
 
 def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: dict) -> None:
-    """Apply simple structured tweaks for planwirtschaft matrices."""
+    """Apply simple structured tweaks for planwirtschaft matrices.
+
+    The helper normalizes ``A`` according to optional column limits and ensures
+    the ``B`` matrix adheres to given demand targets.
+    """
     diag_base = params.get("diag_base", 0.2)
     diag_var = params.get("diag_variation", 0.7)
     diag_vals = [diag_base + diag_var * random.random() for _ in range(A.shape[0])]
     A.setdiag(diag_vals)
 
     max_col_sum = params.get("max_col_sum_A", 0.95)
+
+    column_limits = params.get("A_column_limits")
+    if isinstance(column_limits, dict):
+        for j, limit in column_limits.items():
+            if 0 <= j < A.shape[1]:
+                col_sum = sum(A.data[i][j] for i in range(A.shape[0]))
+                if col_sum > limit and limit > 0:
+                    factor = limit / col_sum
+                    for i in range(A.shape[0]):
+                        A.data[i][j] *= factor
+
     _normalize_column_sums(A, max_col_sum)
 
-    _ensure_b_rows_nonzero(B)
+    row_targets = params.get("B_row_targets")
+    _ensure_b_rows_nonzero(B, row_targets)
 
     priority_factor = params.get("priority_sector_demand_factor", 1.0)
     priority_sectors = params.get("priority_sectors", [])

@@ -25,3 +25,29 @@ def test_subproblem_worker_runs():
     res = solve_subproblem_worker(args)
     cleanup_shared_memory()
     assert res[0] == "b0"
+
+
+def test_overproduction_penalty():
+    cfg = BendersConfig(
+        verbose=False,
+        matrix_gen_params={"planwirtschaft_objective": True, "overproduction_penalty": 0.5},
+    )
+    A = sp.identity(2, format="csr")
+    B = sp.csr_matrix(np.ones((1, 2)))
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args = (
+        "b0",
+        0,
+        2,
+        A_meta,
+        B_meta,
+        np.zeros(2),
+        np.zeros(2),
+        np.ones(1),
+        cfg.__dict__,
+    )
+    block_id, obj, *_ = solve_subproblem_worker(args)
+    cleanup_shared_memory()
+    assert block_id == "b0"
+    assert obj < 2.0
