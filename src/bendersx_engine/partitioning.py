@@ -1,10 +1,15 @@
 """Block partitioning utilities."""
+
 from __future__ import annotations
 
 from typing import List, Tuple, Dict
 
 
-def repartition_blocks(blocks_metadata: List[Tuple[str, int, int]], dual_gaps: Dict[str, float], max_block_size: int):
+def repartition_blocks(
+    blocks_metadata: List[Tuple[str, int, int]],
+    dual_gaps: Dict[str, float],
+    max_block_size: int,
+):
     new_metadata = []
     for block_id, start, end in blocks_metadata:
         size = end - start
