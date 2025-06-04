@@ -9,4 +9,6 @@ The `partitioning` module splits blocks adaptively based on the dual gap. This
 helps keep workloads balanced for large-scale planning models such as
 Leontief-style input-output systems. The same routine can be used for
 "planwirtschaft" problems by specifying `problem_type="planwirtschaft"` when
-generating matrices.
+generating matrices. In this mode the matrix generator now normalizes column
+sums to stay below one and ensures the demand matrix contains at least one
+non-zero entry per row.
