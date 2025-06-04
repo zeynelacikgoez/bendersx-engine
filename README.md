@@ -10,6 +10,7 @@ This repository contains a small Python implementation demonstrating the core st
 * **Environment Helpers** – checks for optional packages like HiGHS and Numba.
 * **Examples and Tests** – a CLI entry point (`python -m bendersx_engine.cli`) and a small pytest suite.
 * **Early Stopping** – iterations halt once the solution change drops below a configurable tolerance.
+* **Adaptive Partitioning** – block sizes adjust according to the dual gap to better handle large planning models.
 
 The implementation is not intended for production use. It omits many optimizations and contains simplified placeholders.
 
