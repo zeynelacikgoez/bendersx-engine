@@ -32,7 +32,10 @@ def benders_decomposition(
     blocks_metadata = [("block_0", 0, n)]
     all_cuts: List = []
 
+    iterations_run = 0
     for _ in range(config.max_iterations_per_phase):
+        iterations_run += 1
+        x_prev_old = x_prev[:]
         r_vars, theta = solve_master_problem(
             blocks_metadata, m0, total_r, all_cuts, config
         )
@@ -68,6 +71,10 @@ def benders_decomposition(
         }
         blocks_metadata = repartition_blocks(blocks_metadata, dual_gaps, n)
 
+        diff = sum(abs(x_prev[i] - x_prev_old[i]) for i in range(n))
+        if diff < config.convergence_tolerance:
+            break
+
     cleanup_shared_memory()
     total = sum(x_prev)
-    return float(total), x_prev, all_cuts, {}
+    return float(total), x_prev, all_cuts, {"iterations": iterations_run}
