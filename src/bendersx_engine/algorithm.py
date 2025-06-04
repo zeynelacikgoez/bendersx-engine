@@ -37,8 +37,8 @@ def benders_decomposition(
             blocks_metadata, m0, total_r, all_cuts, config
         )
         args_list = []
-        for block_id, start, end in blocks_metadata:
-            r_i = r_vars[0]
+        for idx, (block_id, start, end) in enumerate(blocks_metadata):
+            r_i = r_vars[idx]
             args_list.append(
                 (
                     block_id,
