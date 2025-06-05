@@ -138,7 +138,7 @@ def test_production_bonus():
         matrix_gen_params={"planwirtschaft_objective": True, "production_bonus": 0.5},
     )
     A = sp.identity(1, format="csr")
-    B = sp.csr_matrix([[1.0]])
+    B = sp.csr_matrix([[2.0]])
     A_meta = csr_to_shared("A", A)
     B_meta = csr_to_shared("B", B)
     args_base = (
@@ -178,7 +178,7 @@ def test_societal_bonus():
     cfg_base = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True})
     cfg_bonus = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True, "societal_bonuses": {0: 0.5}})
     A = sp.identity(1, format="csr")
-    B = sp.csr_matrix([[1.0]])
+    B = sp.csr_matrix([[2.0]])
     A_meta = csr_to_shared("A", A)
     B_meta = csr_to_shared("B", B)
     args_base = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([1.0]), cfg_base.__dict__)
@@ -197,10 +197,30 @@ def test_societal_bonus():
 def test_co2_penalty():
     cfg_pen = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True, "co2_penalties": {0: 1.0}})
     A = sp.identity(1, format="csr")
-    B = sp.csr_matrix([[1.0]])
+    B = sp.csr_matrix([[2.0]])
     A_meta = csr_to_shared("A", A)
     B_meta = csr_to_shared("B", B)
     args = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([1.0]), cfg_pen.__dict__)
     _, obj_pen, *_ = solve_subproblem_worker(args)
     cleanup_shared_memory()
     assert obj_pen < 1.0
+
+
+def test_inventory_cost():
+    cfg_base = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True})
+    cfg_inv = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True, "inventory_cost": 0.5})
+    A = sp.identity(1, format="csr")
+    B = sp.csr_matrix([[2.0]])
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args_base = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([0.5]), cfg_base.__dict__)
+    _, obj_base, *_ = solve_subproblem_worker(args_base)
+    cleanup_shared_memory()
+
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args_inv = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([0.5]), cfg_inv.__dict__)
+    _, obj_inv, *_ = solve_subproblem_worker(args_inv)
+    cleanup_shared_memory()
+
+    assert obj_inv < obj_base

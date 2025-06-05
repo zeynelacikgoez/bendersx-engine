@@ -40,6 +40,7 @@ class PlanwirtschaftParams:
     co2_penalties: Dict[int, float] | None = None
     production_limits: Dict[int, Dict[int, float]] | None = None
     import_export_limits: Dict[int, Dict[str, float]] | None = None
+    inventory_cost: float = 0.0
 
     def to_dict(self) -> Dict:
         return {k: getattr(self, k) for k in self.__dataclass_fields__}
