@@ -172,3 +172,23 @@ def test_production_bonus():
     cleanup_shared_memory()
 
     assert obj_bonus > obj_base
+
+
+def test_societal_bonus():
+    cfg_base = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True})
+    cfg_bonus = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True, "societal_bonuses": {0: 0.5}})
+    A = sp.identity(1, format="csr")
+    B = sp.csr_matrix([[1.0]])
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args_base = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([1.0]), cfg_base.__dict__)
+    _, obj_base, *_ = solve_subproblem_worker(args_base)
+    cleanup_shared_memory()
+
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args_bonus = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([1.0]), cfg_bonus.__dict__)
+    _, obj_bonus, *_ = solve_subproblem_worker(args_bonus)
+    cleanup_shared_memory()
+
+    assert obj_bonus > obj_base

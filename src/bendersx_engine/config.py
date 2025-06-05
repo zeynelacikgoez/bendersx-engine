@@ -33,6 +33,8 @@ class PlanwirtschaftParams:
     tiered_overproduction_penalties: List[tuple] | None = None
     production_bonus: float = 0.0
     priority_sector_bonus_factor: float = 1.0
+    societal_bonuses: Dict[int, float] | None = None
+    min_block_allocations: Dict[int, float] | None = None
 
     def to_dict(self) -> Dict:
         return {k: getattr(self, k) for k in self.__dataclass_fields__}
