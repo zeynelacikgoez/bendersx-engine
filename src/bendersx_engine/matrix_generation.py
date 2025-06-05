@@ -139,6 +139,35 @@ def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: di
                     factor = limit / row_sum
                     B.data[idx] = [val * factor for val in B.data[idx]]
 
+    prod_limits = params.get("production_limits")
+    if isinstance(prod_limits, dict):
+        for i, col_limits in prod_limits.items():
+            if 0 <= i < B.shape[0] and isinstance(col_limits, dict):
+                for j, limit in col_limits.items():
+                    if 0 <= j < B.shape[1] and limit >= 0:
+                        if B.data[i][j] > limit:
+                            B.data[i][j] = limit
+
+    trade_limits = params.get("import_export_limits")
+    if isinstance(trade_limits, dict):
+        import_lims = trade_limits.get("import")
+        export_lims = trade_limits.get("export")
+        if isinstance(import_lims, dict):
+            for j, lim in import_lims.items():
+                if 0 <= j < A.shape[1] and lim >= 0:
+                    col_sum = sum(A.data[i][j] for i in range(A.shape[0]))
+                    if col_sum > lim and col_sum > 0:
+                        factor = lim / col_sum
+                        for i in range(A.shape[0]):
+                            A.data[i][j] *= factor
+        if isinstance(export_lims, dict):
+            for i, lim in export_lims.items():
+                if 0 <= i < B.shape[0] and lim >= 0:
+                    row_sum = sum(B.data[i])
+                    if row_sum > lim and row_sum > 0:
+                        factor = lim / row_sum
+                        B.data[i] = [val * factor for val in B.data[i]]
+
 
 def _random_matrix(rows: int, cols: int, density: float) -> SimpleMatrix:
     data = []

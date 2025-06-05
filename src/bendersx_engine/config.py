@@ -38,9 +38,20 @@ class PlanwirtschaftParams:
     priority_levels: Dict[int, int] | None = None
     seasonal_demand_weights: List[float] | None = None
     co2_penalties: Dict[int, float] | None = None
+    production_limits: Dict[int, Dict[int, float]] | None = None
+    import_export_limits: Dict[int, Dict[str, float]] | None = None
 
     def to_dict(self) -> Dict:
         return {k: getattr(self, k) for k in self.__dataclass_fields__}
+
+    @staticmethod
+    def from_file(path: str) -> "PlanwirtschaftParams":
+        """Load parameters from a JSON file."""
+        import json
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return PlanwirtschaftParams(**data)
 
 
 @dataclass
@@ -92,3 +103,15 @@ class BendersConfig:
 
         if self.matrix_gen_params.get("priority_sectors") and self.priority_sector_allocation_factor < 1.0:
             raise ValueError("priority_sector_allocation_factor must be >= 1.0")
+
+    @staticmethod
+    def from_file(path: str) -> "BendersConfig":
+        """Load configuration from a JSON file."""
+        import json
+
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        params = data.get("matrix_gen_params")
+        if isinstance(params, dict):
+            data["matrix_gen_params"] = PlanwirtschaftParams(**params)
+        return BendersConfig(**data)

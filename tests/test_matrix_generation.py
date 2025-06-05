@@ -66,3 +66,17 @@ def test_priority_levels_and_seasonal_weights():
     cfg = BendersConfig(verbose=False, matrix_gen_params=params)
     _, B = generate_sparse_matrices(3, 1, problem_type="planwirtschaft", config=cfg)
     assert abs(B.data[0][0] - 1.2) < 1e-6
+
+
+def test_production_and_trade_limits():
+    params = PlanwirtschaftParams(
+        production_limits={0: {0: 0.2}},
+        import_export_limits={"import": {0: 0.1}, "export": {0: 0.3}},
+    )
+    cfg = BendersConfig(verbose=False, matrix_gen_params=params)
+    A, B = generate_sparse_matrices(2, 1, problem_type="planwirtschaft", config=cfg)
+    assert B.data[0][0] <= 0.2 + 1e-9
+    col_sum = sum(A.data[i][0] for i in range(2))
+    assert col_sum <= 0.1 + 1e-9
+    row_sum = sum(B.data[0])
+    assert row_sum <= 0.3 + 1e-9

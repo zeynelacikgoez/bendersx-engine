@@ -12,3 +12,4 @@ def test_algorithm_runs():
     total_r = np.ones(m0)
     _, _, _, info = benders_decomposition(n, m0, total_r, A, B, cfg)
     assert info["iterations"] <= cfg.max_iterations_per_phase
+    assert isinstance(info.get("unfulfilled_demand"), list)
