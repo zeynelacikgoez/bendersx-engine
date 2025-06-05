@@ -78,6 +78,9 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
         over_penalties = inp.config.matrix_gen_params.get("overproduction_penalties")
         tiered_under = inp.config.matrix_gen_params.get("tiered_underproduction_penalties")
         tiered_over = inp.config.matrix_gen_params.get("tiered_overproduction_penalties")
+        prod_bonus = inp.config.matrix_gen_params.get("production_bonus", 0.0)
+        bonus_factor = inp.config.matrix_gen_params.get("priority_sector_bonus_factor", 1.0)
+        priority = set(inp.config.matrix_gen_params.get("priority_sectors", []))
 
         m0 = len(inp.r_i_assigned)
         if under_penalties is None:
@@ -106,7 +109,11 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
                 over_cost = _apply_tiered_penalty(over_dev, tiered_over)
             else:
                 over_cost = over_penalties[i] * over_dev
-            obj += produced - under_cost - over_cost
+            sector_bonus = prod_bonus
+            if i in priority:
+                sector_bonus *= bonus_factor
+            bonus = sector_bonus * min(planned, produced)
+            obj += produced + bonus - under_cost - over_cost
     pi_i = [0.5 for _ in inp.r_i_assigned]
     mu_iT_d_value = obj - sum(pi_i[j] * inp.r_i_assigned[j] for j in range(len(pi_i)))
     cut = make_opt_cut(inp.block_id, pi_i, mu_iT_d_value)
