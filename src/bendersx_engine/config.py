@@ -31,6 +31,8 @@ class PlanwirtschaftParams:
     planwirtschaft_objective: bool = False
     tiered_underproduction_penalties: List[tuple] | None = None
     tiered_overproduction_penalties: List[tuple] | None = None
+    production_bonus: float = 0.0
+    priority_sector_bonus_factor: float = 1.0
 
     def to_dict(self) -> Dict:
         return {k: getattr(self, k) for k in self.__dataclass_fields__}
