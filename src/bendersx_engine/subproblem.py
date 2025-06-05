@@ -83,6 +83,7 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
         priority = set(inp.config.matrix_gen_params.get("priority_sectors", []))
         societal_bonuses = inp.config.matrix_gen_params.get("societal_bonuses", {})
         co2_penalties = inp.config.matrix_gen_params.get("co2_penalties", {})
+        inventory_cost = inp.config.matrix_gen_params.get("inventory_cost", 0.0)
 
         m0 = len(inp.r_i_assigned)
         if under_penalties is None:
@@ -117,7 +118,8 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
             bonus = sector_bonus * min(planned, produced)
             societal_bonus = societal_bonuses.get(i, 0.0) * produced
             co2_pen = co2_penalties.get(i, 0.0) * produced
-            obj += produced + bonus + societal_bonus - under_cost - over_cost - co2_pen
+            inv_cost = inventory_cost * over_dev
+            obj += produced + bonus + societal_bonus - under_cost - over_cost - co2_pen - inv_cost
     pi_i = [0.5 for _ in inp.r_i_assigned]
     mu_iT_d_value = obj - sum(pi_i[j] * inp.r_i_assigned[j] for j in range(len(pi_i)))
     cut = make_opt_cut(inp.block_id, pi_i, mu_iT_d_value)
