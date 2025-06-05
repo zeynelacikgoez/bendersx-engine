@@ -17,8 +17,12 @@ def _normalize_column_sums(matrix: SimpleMatrix, max_sum: float) -> None:
                 matrix.data[i][j] *= factor
 
 
-def _ensure_b_rows_nonzero(B: SimpleMatrix, row_targets: dict | None = None) -> None:
-    """Ensure every row of ``B`` has at least one non-zero entry.
+def _ensure_b_rows_nonzero(
+    B: SimpleMatrix,
+    row_targets: dict | None = None,
+    row_total_targets: dict | None = None,
+) -> None:
+    """Ensure every row of ``B`` has at least one non-zero entry and optional totals.
 
     Parameters
     ----------
@@ -27,9 +31,15 @@ def _ensure_b_rows_nonzero(B: SimpleMatrix, row_targets: dict | None = None) -> 
     row_targets : dict | None, optional
         Optional dictionary mapping row indices to ``{col: value}`` mappings.
         Specified entries are written before the non-zero check is performed.
+    row_total_targets : dict | None, optional
+        Optional mapping of row indices to desired total row sums. The row will
+        be scaled to match this target after ``row_targets`` are applied and
+        non-zero entries ensured.
     """
     if row_targets is None:
         row_targets = {}
+    if row_total_targets is None:
+        row_total_targets = {}
 
     n = B.shape[1]
     for idx, row in enumerate(B.data):
@@ -41,6 +51,18 @@ def _ensure_b_rows_nonzero(B: SimpleMatrix, row_targets: dict | None = None) -> 
 
         if not any(val != 0 for val in row) and n > 0:
             row[random.randrange(n)] = random.random()
+
+        total_target = row_total_targets.get(idx)
+        if total_target is not None and n > 0:
+            current = sum(row)
+            if current > 0:
+                factor = total_target / current
+                for j in range(n):
+                    row[j] *= factor
+            else:
+                share = total_target / n
+                for j in range(n):
+                    row[j] = share
 
 
 def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: dict) -> None:
@@ -69,7 +91,8 @@ def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: di
     _normalize_column_sums(A, max_col_sum)
 
     row_targets = params.get("B_row_targets")
-    _ensure_b_rows_nonzero(B, row_targets)
+    row_total_targets = params.get("B_row_total_targets")
+    _ensure_b_rows_nonzero(B, row_targets, row_total_targets)
 
     priority_factor = params.get("priority_sector_demand_factor", 1.0)
     priority_sectors = params.get("priority_sectors", [])

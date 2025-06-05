@@ -4,10 +4,36 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
-from dataclasses import dataclass
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, List, Dict
 
 from .env_detection import check_highs_version, detect_gpu_support, setup_numba_cache
+
+
+@dataclass
+class PlanwirtschaftParams:
+    """Structured parameters for planwirtschaft-style matrix generation."""
+
+    diag_base: float = 0.2
+    diag_variation: float = 0.7
+    max_col_sum_A: float = 0.95
+    A_column_limits: Dict[int, float] | None = None
+    B_row_targets: Dict[int, Dict[int, float]] | None = None
+    B_row_total_targets: Dict[int, float] | None = None
+    priority_sectors: List[int] = field(default_factory=list)
+    priority_sector_demand_factor: float = 1.0
+    priority_sector_tech_factor: float | None = None
+    sector_capacity_limits: Dict[int, float] | None = None
+    underproduction_penalty: float = 1.0
+    overproduction_penalty: float = 0.0
+    underproduction_penalties: List[float] | None = None
+    overproduction_penalties: List[float] | None = None
+    planwirtschaft_objective: bool = False
+    tiered_underproduction_penalties: List[tuple] | None = None
+    tiered_overproduction_penalties: List[tuple] | None = None
+
+    def to_dict(self) -> Dict:
+        return {k: getattr(self, k) for k in self.__dataclass_fields__}
 
 
 @dataclass
@@ -27,7 +53,7 @@ class BendersConfig:
     adaptive_big_m_factor: int = 50
     big_m_cap: float = 1e7
     convergence_tolerance: float = 1e-6
-    matrix_gen_params: Optional[dict] = None  # e.g. planwirtschaft parameters
+    matrix_gen_params: Optional[dict | PlanwirtschaftParams] = None  # e.g. planwirtschaft parameters
     enable_memory_tracking: bool = True
     set_omp_threads: bool = True
     priority_sector_allocation_factor: float = 1.0
@@ -52,6 +78,8 @@ class BendersConfig:
 
         if self.matrix_gen_params is None:
             self.matrix_gen_params = {}
+        elif isinstance(self.matrix_gen_params, PlanwirtschaftParams):
+            self.matrix_gen_params = self.matrix_gen_params.to_dict()
 
         if self.matrix_gen_params.get("priority_sectors") and self.priority_sector_allocation_factor < 1.0:
             raise ValueError("priority_sector_allocation_factor must be >= 1.0")

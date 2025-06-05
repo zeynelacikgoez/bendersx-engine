@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Tuple, Sequence
+from typing import Tuple, Sequence, List, Iterable
 
 from .config import BendersConfig
 from .shared_memory import csr_from_shared
@@ -33,6 +33,25 @@ class SubproblemOutput:
     cut: tuple | None
 
 
+def _apply_tiered_penalty(dev: float, tiers: Iterable[tuple]) -> float:
+    """Compute penalty for a deviation using tiered (piecewise) coefficients."""
+    remaining = dev
+    prev = 0.0
+    total = 0.0
+    tiers_list = list(tiers)
+    for thresh, coeff in tiers_list:
+        if remaining <= 0:
+            break
+        step = min(remaining, thresh - prev)
+        if step > 0:
+            total += step * coeff
+            remaining -= step
+        prev = thresh
+    if remaining > 0 and tiers_list:
+        total += remaining * tiers_list[-1][1]
+    return total
+
+
 def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple | None]:
     if isinstance(args, SubproblemInput):
         inp = args
@@ -57,6 +76,8 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
         over_penalty = inp.config.matrix_gen_params.get("overproduction_penalty", 0.0)
         under_penalties = inp.config.matrix_gen_params.get("underproduction_penalties")
         over_penalties = inp.config.matrix_gen_params.get("overproduction_penalties")
+        tiered_under = inp.config.matrix_gen_params.get("tiered_underproduction_penalties")
+        tiered_over = inp.config.matrix_gen_params.get("tiered_overproduction_penalties")
 
         m0 = len(inp.r_i_assigned)
         if under_penalties is None:
@@ -77,7 +98,15 @@ def solve_subproblem_worker(args) -> Tuple[str, float, list, list, list, tuple |
             produced = produced_vec[i]
             under_dev = max(0.0, planned - produced)
             over_dev = max(0.0, produced - planned)
-            obj += produced - under_penalties[i] * under_dev - over_penalties[i] * over_dev
+            if tiered_under:
+                under_cost = _apply_tiered_penalty(under_dev, tiered_under)
+            else:
+                under_cost = under_penalties[i] * under_dev
+            if tiered_over:
+                over_cost = _apply_tiered_penalty(over_dev, tiered_over)
+            else:
+                over_cost = over_penalties[i] * over_dev
+            obj += produced - under_cost - over_cost
     pi_i = [0.5 for _ in inp.r_i_assigned]
     mu_iT_d_value = obj - sum(pi_i[j] * inp.r_i_assigned[j] for j in range(len(pi_i)))
     cut = make_opt_cut(inp.block_id, pi_i, mu_iT_d_value)

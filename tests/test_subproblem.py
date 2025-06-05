@@ -79,3 +79,50 @@ def test_componentwise_penalties():
     _, obj, *_ = solve_subproblem_worker(args)
     cleanup_shared_memory()
     assert obj < 1.5
+
+
+def test_tiered_penalties():
+    cfg_linear = BendersConfig(
+        verbose=False,
+        matrix_gen_params={"planwirtschaft_objective": True, "underproduction_penalty": 1.0},
+    )
+    cfg_tiered = BendersConfig(
+        verbose=False,
+        matrix_gen_params={
+            "planwirtschaft_objective": True,
+            "tiered_underproduction_penalties": [(1.0, 1.0), (2.0, 2.0)],
+        },
+    )
+    A = sp.identity(1, format="csr")
+    B = sp.csr_matrix([[0.5]])
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args_lin = (
+        "b0",
+        0,
+        1,
+        A_meta,
+        B_meta,
+        np.zeros(1),
+        np.zeros(1),
+        np.array([3.0]),
+        cfg_linear.__dict__,
+    )
+    _, obj_lin, *_ = solve_subproblem_worker(args_lin)
+    cleanup_shared_memory()
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args_tier = (
+        "b0",
+        0,
+        1,
+        A_meta,
+        B_meta,
+        np.zeros(1),
+        np.zeros(1),
+        np.array([3.0]),
+        cfg_tiered.__dict__,
+    )
+    _, obj_tier, *_ = solve_subproblem_worker(args_tier)
+    cleanup_shared_memory()
+    assert obj_tier < obj_lin

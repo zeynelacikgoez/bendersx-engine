@@ -1,5 +1,5 @@
 from bendersx_engine.matrix_generation import generate_sparse_matrices
-from bendersx_engine import BendersConfig
+from bendersx_engine import BendersConfig, PlanwirtschaftParams
 
 
 def test_matrix_shapes():
@@ -47,3 +47,10 @@ def test_capacity_limits_and_tech_factor():
     avg_row0 = sum(A.data[1]) / len(A.data[1])
     avg_other = sum(A.data[0]) / len(A.data[0])
     assert avg_row0 <= avg_other
+
+
+def test_row_total_targets_dataclass():
+    params = PlanwirtschaftParams(B_row_total_targets={0: 2.0})
+    cfg = BendersConfig(verbose=False, matrix_gen_params=params)
+    A, B = generate_sparse_matrices(3, 1, problem_type="planwirtschaft", config=cfg)
+    assert abs(sum(B.data[0]) - 2.0) < 1e-6
