@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Tuple, List, Dict
+import multiprocessing as mp
 
 from .config import BendersConfig
 from .shared_memory import csr_to_shared, cleanup_shared_memory
@@ -55,7 +56,11 @@ def benders_decomposition(
                     config.__dict__,
                 )
             )
-        results = [solve_subproblem_worker(args) for args in args_list]
+        if config.use_parallel_subproblems:
+            with mp.Pool(processes=config.n_processes) as pool:
+                results = pool.map(solve_subproblem_worker, args_list)
+        else:
+            results = [solve_subproblem_worker(args) for args in args_list]
         new_cuts = [res[-1] for res in results if res[-1] is not None]
         all_cuts.extend(new_cuts)
         all_cuts = pareto_select_cuts(all_cuts, config.cut_pool_multiplier, config)
@@ -65,6 +70,14 @@ def benders_decomposition(
                 if bid == block_id:
                     x_prev[s:e] = x_block
                     break
+        if config.dynamic_block_weights:
+            new_dist = []
+            for idx, (_, _, _) in enumerate(blocks_metadata):
+                planned = sum(r_vars[idx])
+                produced = sum(x_prev[blocks_metadata[idx][1]:blocks_metadata[idx][2]])
+                ratio = produced / planned if planned > 0 else 1.0
+                new_dist.append(ratio)
+            config.matrix_gen_params["block_distribution"] = new_dist
         dual_gaps = {
             bid: theta[idx] - results[idx][1]
             for idx, (bid, _, _) in enumerate(blocks_metadata)

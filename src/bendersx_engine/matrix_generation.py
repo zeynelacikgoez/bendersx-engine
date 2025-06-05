@@ -94,14 +94,23 @@ def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: di
     row_total_targets = params.get("B_row_total_targets")
     _ensure_b_rows_nonzero(B, row_targets, row_total_targets)
 
+    seasonal_weights = params.get("seasonal_demand_weights")
+    if isinstance(seasonal_weights, list):
+        for idx, weight in enumerate(seasonal_weights):
+            if 0 <= idx < B.shape[0]:
+                B.data[idx] = [val * weight for val in B.data[idx]]
+
     priority_factor = params.get("priority_sector_demand_factor", 1.0)
     priority_sectors = params.get("priority_sectors", [])
+    priority_levels = params.get("priority_levels") or {}
     for idx in priority_sectors:
         if 0 <= idx < B.shape[0]:
             row = B.data[idx]
             if not any(val != 0 for val in row) and B.shape[1] > 0:
                 row[random.randrange(B.shape[1])] = random.random() * priority_factor
-            B.data[idx] = [val * priority_factor for val in row]
+            level = priority_levels.get(idx, 0)
+            fac = priority_factor * (1.0 + level / 10.0)
+            B.data[idx] = [val * fac for val in row]
 
     tech_factor = params.get("priority_sector_tech_factor")
     if tech_factor is not None:

@@ -17,3 +17,9 @@ non-zero entry per row. Additional parameters allow emphasizing
 resources to these blocks. Component-wise penalties can be configured with
 `underproduction_penalties` and `overproduction_penalties` in
 ``matrix_gen_params``.
+
+New options include hierarchical priorities via `priority_levels`, seasonal
+scaling of demand with `seasonal_demand_weights` and ecological costs using
+`co2_penalties`. Parallel subproblem solving can be enabled with
+`use_parallel_subproblems` while `dynamic_block_weights` updates resource
+weights between iterations based on the previous production levels.
