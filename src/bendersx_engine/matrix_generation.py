@@ -109,6 +109,18 @@ def _apply_planwirtschaft_modifiers(A: SimpleMatrix, B: SimpleMatrix, params: di
             if 0 <= idx < A.shape[0]:
                 A.data[idx] = [val * tech_factor for val in A.data[idx]]
 
+        other_rows = [i for i in range(A.shape[0]) if i not in priority_sectors]
+        if other_rows:
+            target_avg = sum(sum(A.data[i]) for i in other_rows) / (
+                len(other_rows) * A.shape[1]
+            )
+            for idx in priority_sectors:
+                if 0 <= idx < A.shape[0]:
+                    row_avg = sum(A.data[idx]) / A.shape[1]
+                    if row_avg > target_avg and row_avg > 0:
+                        scale = target_avg / row_avg
+                        A.data[idx] = [val * scale for val in A.data[idx]]
+
     capacity_limits = params.get("sector_capacity_limits")
     if isinstance(capacity_limits, dict):
         for idx, limit in capacity_limits.items():
