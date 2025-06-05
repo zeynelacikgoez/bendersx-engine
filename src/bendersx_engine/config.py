@@ -35,6 +35,9 @@ class PlanwirtschaftParams:
     priority_sector_bonus_factor: float = 1.0
     societal_bonuses: Dict[int, float] | None = None
     min_block_allocations: Dict[int, float] | None = None
+    priority_levels: Dict[int, int] | None = None
+    seasonal_demand_weights: List[float] | None = None
+    co2_penalties: Dict[int, float] | None = None
 
     def to_dict(self) -> Dict:
         return {k: getattr(self, k) for k in self.__dataclass_fields__}
@@ -61,6 +64,8 @@ class BendersConfig:
     enable_memory_tracking: bool = True
     set_omp_threads: bool = True
     priority_sector_allocation_factor: float = 1.0
+    use_parallel_subproblems: bool = False
+    dynamic_block_weights: bool = False
 
     def __post_init__(self) -> None:
         if self.n_processes is None:

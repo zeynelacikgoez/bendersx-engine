@@ -192,3 +192,15 @@ def test_societal_bonus():
     cleanup_shared_memory()
 
     assert obj_bonus > obj_base
+
+
+def test_co2_penalty():
+    cfg_pen = BendersConfig(verbose=False, matrix_gen_params={"planwirtschaft_objective": True, "co2_penalties": {0: 1.0}})
+    A = sp.identity(1, format="csr")
+    B = sp.csr_matrix([[1.0]])
+    A_meta = csr_to_shared("A", A)
+    B_meta = csr_to_shared("B", B)
+    args = ("b0", 0, 1, A_meta, B_meta, np.zeros(1), np.zeros(1), np.array([1.0]), cfg_pen.__dict__)
+    _, obj_pen, *_ = solve_subproblem_worker(args)
+    cleanup_shared_memory()
+    assert obj_pen < 1.0

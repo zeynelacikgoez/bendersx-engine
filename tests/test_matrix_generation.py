@@ -54,3 +54,15 @@ def test_row_total_targets_dataclass():
     cfg = BendersConfig(verbose=False, matrix_gen_params=params)
     A, B = generate_sparse_matrices(3, 1, problem_type="planwirtschaft", config=cfg)
     assert abs(sum(B.data[0]) - 2.0) < 1e-6
+
+
+def test_priority_levels_and_seasonal_weights():
+    params = PlanwirtschaftParams(
+        priority_sectors=[0],
+        priority_levels={0: 2},
+        seasonal_demand_weights=[2.0],
+        B_row_targets={0: {0: 0.5}},
+    )
+    cfg = BendersConfig(verbose=False, matrix_gen_params=params)
+    _, B = generate_sparse_matrices(3, 1, problem_type="planwirtschaft", config=cfg)
+    assert abs(B.data[0][0] - 1.2) < 1e-6
