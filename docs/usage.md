@@ -20,6 +20,9 @@ resources to these blocks. Component-wise penalties can be configured with
 
 New options include hierarchical priorities via `priority_levels`, seasonal
 scaling of demand with `seasonal_demand_weights` and ecological costs using
-`co2_penalties`. Parallel subproblem solving can be enabled with
-`use_parallel_subproblems` while `dynamic_block_weights` updates resource
-weights between iterations based on the previous production levels.
+`co2_penalties`. Production cell restrictions and trade limits can be set with
+`production_limits` and `import_export_limits`. Configuration files can be
+loaded through `PlanwirtschaftParams.from_file` or `BendersConfig.from_file`.
+Parallel subproblem solving can be enabled with `use_parallel_subproblems` while
+`dynamic_block_weights` updates resource weights between iterations using the
+previous distribution.

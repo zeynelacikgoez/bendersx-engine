@@ -13,6 +13,8 @@ This repository contains a small Python implementation demonstrating the core st
 * **Adaptive Partitioning** – block sizes adjust according to the dual gap to better handle large planning models.
 * **Planned Economy Support** – generate matrices for `planwirtschaft` style input-output systems using the existing helpers.
 * **Hierarchical Priorities** – optional `priority_levels` and seasonal weights allow refined demand modeling with ecological penalties.
+* **Production and Trade Limits** – additional parameters bound individual production cells and import/export totals.
+* **Config Loading** – `PlanwirtschaftParams.from_file` and `BendersConfig.from_file` allow JSON based configuration files.
 
 The implementation is not intended for production use. It omits many optimizations and contains simplified placeholders.
 

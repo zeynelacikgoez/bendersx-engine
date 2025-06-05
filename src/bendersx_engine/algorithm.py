@@ -72,11 +72,13 @@ def benders_decomposition(
                     break
         if config.dynamic_block_weights:
             new_dist = []
-            for idx, (_, _, _) in enumerate(blocks_metadata):
+            prev_dist = config.matrix_gen_params.get("block_distribution") or [1.0 for _ in blocks_metadata]
+            for idx, (_, start, end) in enumerate(blocks_metadata):
                 planned = sum(r_vars[idx])
-                produced = sum(x_prev[blocks_metadata[idx][1]:blocks_metadata[idx][2]])
+                produced = sum(x_prev[start:end])
                 ratio = produced / planned if planned > 0 else 1.0
-                new_dist.append(ratio)
+                weight = 0.5 * prev_dist[idx] + 0.5 * ratio
+                new_dist.append(weight)
             config.matrix_gen_params["block_distribution"] = new_dist
         dual_gaps = {
             bid: theta[idx] - results[idx][1]
@@ -90,4 +92,13 @@ def benders_decomposition(
 
     cleanup_shared_memory()
     total = sum(x_prev)
-    return float(total), x_prev, all_cuts, {"iterations": iterations_run}
+    unfulfilled = []
+    for idx, (_, start, end) in enumerate(blocks_metadata):
+        produced = sum(x_prev[start:end])
+        planned = sum(r_vars[idx])
+        unfulfilled.append(max(0.0, planned - produced))
+
+    return float(total), x_prev, all_cuts, {
+        "iterations": iterations_run,
+        "unfulfilled_demand": unfulfilled,
+    }
